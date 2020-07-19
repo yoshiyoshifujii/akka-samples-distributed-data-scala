@@ -9,7 +9,7 @@ val `akka-sample-distributed-data-scala` = project
   .settings(
     organization := "com.lightbend.akka.samples",
     version := "1.0",
-    scalaVersion := "2.13.1",
+    scalaVersion := "2.13.3",
     scalacOptions in Compile ++= Seq("-deprecation", "-feature", "-unchecked", "-Xlog-reflective-calls", "-Xlint"),
     javacOptions in Compile ++= Seq("-Xlint:unchecked", "-Xlint:deprecation"),
     javaOptions in run ++= Seq("-Xms128m", "-Xmx1024m"),
@@ -19,7 +19,7 @@ val `akka-sample-distributed-data-scala` = project
         "com.typesafe.akka" %% "akka-multi-node-testkit"    % akkaVersion % Test,
         "com.typesafe.akka" %% "akka-actor-testkit-typed"   % akkaVersion % Test,
         "ch.qos.logback"     % "logback-classic"            % "1.2.3"     % Test,
-        "org.scalatest"     %% "scalatest"                  % "3.0.8"     % Test
+        "org.scalatest"     %% "scalatest"                  % "3.2.0"     % Test
       ),
     fork in run := true,
     Global / cancelable := false, // ctrl-c
