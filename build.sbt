@@ -14,12 +14,13 @@ val `akka-sample-distributed-data-scala` = project
     javacOptions in Compile ++= Seq("-Xlint:unchecked", "-Xlint:deprecation"),
     javaOptions in run ++= Seq("-Xms128m", "-Xmx1024m"),
     libraryDependencies ++= Seq(
-      "com.typesafe.akka" %% "akka-cluster-typed" % akkaVersion,
-      "com.typesafe.akka" %% "akka-serialization-jackson" % akkaVersion,
-      "com.typesafe.akka" %% "akka-multi-node-testkit" % akkaVersion % Test,
-      "com.typesafe.akka" %% "akka-actor-testkit-typed" % akkaVersion % Test,
-      "ch.qos.logback" % "logback-classic" % "1.2.3" % Test,
-      "org.scalatest" %% "scalatest" % "3.0.8" % Test),
+        "com.typesafe.akka" %% "akka-cluster-typed"         % akkaVersion,
+        "com.typesafe.akka" %% "akka-serialization-jackson" % akkaVersion,
+        "com.typesafe.akka" %% "akka-multi-node-testkit"    % akkaVersion % Test,
+        "com.typesafe.akka" %% "akka-actor-testkit-typed"   % akkaVersion % Test,
+        "ch.qos.logback"     % "logback-classic"            % "1.2.3"     % Test,
+        "org.scalatest"     %% "scalatest"                  % "3.0.8"     % Test
+      ),
     fork in run := true,
     Global / cancelable := false, // ctrl-c
     // disable parallel tests
@@ -29,4 +30,4 @@ val `akka-sample-distributed-data-scala` = project
     logBuffered in Test := false,
     licenses := Seq(("CC0", url("http://creativecommons.org/publicdomain/zero/1.0")))
   )
-  .configs (MultiJvm)
+  .configs(MultiJvm)

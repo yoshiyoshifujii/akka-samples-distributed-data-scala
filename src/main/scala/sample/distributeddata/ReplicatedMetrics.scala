@@ -22,20 +22,22 @@ import akka.cluster.typed.Subscribe
 
 object ReplicatedMetrics {
   sealed trait Command
-  private case object Tick extends Command
+  private case object Tick    extends Command
   private case object Cleanup extends Command
 
-  private sealed trait InternalCommand extends Command
+  private sealed trait InternalCommand                                                       extends Command
   private case class InternalSubscribeResponse(rsp: SubscribeResponse[LWWMap[String, Long]]) extends InternalCommand
-  private case class InternalClusterMemberUp(msg: ClusterEvent.MemberUp) extends InternalCommand
-  private case class InternalClusterMemberRemoved(msg: ClusterEvent.MemberRemoved) extends InternalCommand
-  private case class InternalUpdateResponse[A <: ReplicatedData](rsp: UpdateResponse[A]) extends InternalCommand
+  private case class InternalClusterMemberUp(msg: ClusterEvent.MemberUp)                     extends InternalCommand
+  private case class InternalClusterMemberRemoved(msg: ClusterEvent.MemberRemoved)           extends InternalCommand
+  private case class InternalUpdateResponse[A <: ReplicatedData](rsp: UpdateResponse[A])     extends InternalCommand
 
   case class UsedHeap(percentPerNode: Map[String, Double]) {
+
     override def toString =
-      percentPerNode.toSeq.sortBy(_._1).map {
-        case (key, value) => key + " --> " + value + " %"
-      }.mkString("\n")
+      percentPerNode.toSeq
+        .sortBy(_._1).map {
+          case (key, value) => key + " --> " + value + " %"
+        }.mkString("\n")
   }
 
   def nodeKey(address: Address): String = address.host.get + ":" + address.port.get
@@ -49,14 +51,14 @@ object ReplicatedMetrics {
           implicit val selfUniqueAddress: SelfUniqueAddress =
             DistributedData(context.system).selfUniqueAddress
           implicit val cluster = Cluster(context.system)
-          val node = nodeKey(cluster.selfMember.address)
+          val node             = nodeKey(cluster.selfMember.address)
 
           timers.startTimerWithFixedDelay(Tick, Tick, measureInterval)
           timers.startTimerWithFixedDelay(Cleanup, Cleanup, cleanupInterval)
           val memoryMBean: MemoryMXBean = ManagementFactory.getMemoryMXBean
 
           val UsedHeapKey = LWWMapKey[String, Long]("usedHeap")
-          val MaxHeapKey = LWWMapKey[String, Long]("maxHeap")
+          val MaxHeapKey  = LWWMapKey[String, Long]("maxHeap")
 
           replicator.subscribe(UsedHeapKey, InternalSubscribeResponse.apply)
           replicator.subscribe(MaxHeapKey, InternalSubscribeResponse.apply)
@@ -66,27 +68,31 @@ object ReplicatedMetrics {
           cluster.subscriptions ! Subscribe(memberUpRef, classOf[ClusterEvent.MemberUp])
           cluster.subscriptions ! Subscribe(memberRemovedRef, classOf[ClusterEvent.MemberRemoved])
 
-          var maxHeap = Map.empty[String, Long]
+          var maxHeap        = Map.empty[String, Long]
           var nodesInCluster = Set.empty[String]
 
           Behaviors.receiveMessage {
             case Tick =>
               val heap = memoryMBean.getHeapMemoryUsage
               val used = heap.getUsed
-              val max = heap.getMax
+              val max  = heap.getMax
 
               replicator.askUpdate(
-                askReplyTo => Update(UsedHeapKey, LWWMap.empty[String, Long], WriteLocal, askReplyTo)(_ :+ (node -> used)),
-                InternalUpdateResponse.apply)
+                askReplyTo =>
+                  Update(UsedHeapKey, LWWMap.empty[String, Long], WriteLocal, askReplyTo)(_ :+ (node -> used)),
+                InternalUpdateResponse.apply
+              )
 
               replicator.askUpdate(
-                askReplyTo => Update(MaxHeapKey, LWWMap.empty[String, Long], WriteLocal, askReplyTo) { data =>
-                  data.get(node) match {
-                    case Some(`max`) => data // unchanged
-                    case _           => data :+ (node -> max)
-                  }
-                },
-                InternalUpdateResponse.apply)
+                askReplyTo =>
+                  Update(MaxHeapKey, LWWMap.empty[String, Long], WriteLocal, askReplyTo) { data =>
+                    data.get(node) match {
+                      case Some(`max`) => data // unchanged
+                      case _           => data :+ (node -> max)
+                    }
+                  },
+                InternalUpdateResponse.apply
+              )
 
               Behaviors.same
 
@@ -119,15 +125,19 @@ object ReplicatedMetrics {
 
             case Cleanup =>
               def cleanupRemoved(data: LWWMap[String, Long]): LWWMap[String, Long] =
-                (data.entries.keySet -- nodesInCluster).foldLeft(data) { case (d, key) => d.remove(selfUniqueAddress, key) }
+                (data.entries.keySet -- nodesInCluster).foldLeft(data) {
+                  case (d, key) => d.remove(selfUniqueAddress, key)
+                }
 
               replicator.askUpdate(
                 askReplyTo => Update(UsedHeapKey, LWWMap.empty[String, Long], WriteLocal, askReplyTo)(cleanupRemoved),
-                InternalUpdateResponse.apply)
+                InternalUpdateResponse.apply
+              )
 
               replicator.askUpdate(
                 askReplyTo => Update(MaxHeapKey, LWWMap.empty[String, Long], WriteLocal, askReplyTo)(cleanupRemoved),
-                InternalUpdateResponse.apply)
+                InternalUpdateResponse.apply
+              )
 
               Behaviors.same
           }
