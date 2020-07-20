@@ -7,7 +7,7 @@ val `akka-sample-distributed-data-scala` = project
   .in(file("."))
   .settings(multiJvmSettings: _*)
   .settings(
-    organization := "com.lightbend.akka.samples",
+    organization := "com.github.yoshiyoshifujii.akka.samples",
     version := "1.0",
     scalaVersion := "2.13.3",
     scalacOptions in Compile ++= Seq("-deprecation", "-feature", "-unchecked", "-Xlog-reflective-calls", "-Xlint"),
