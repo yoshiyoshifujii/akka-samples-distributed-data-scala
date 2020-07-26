@@ -30,14 +30,14 @@ object Counter {
           Behaviors.receiveMessage {
             case Increment =>
               replicatorAdapter.askUpdate(
-                askReplyTo => Replicator.Update(key, GCounter.empty, Replicator.WriteLocal, askReplyTo)(_ :+ 1),
+                Replicator.Update(key, GCounter.empty, Replicator.WriteLocal)(_ :+ 1),
                 InternalUpdateResponse.apply
               )
               Behaviors.same
 
             case GetValue(replyTo) =>
               replicatorAdapter.askGet(
-                askReplyTo => Replicator.Get(key, Replicator.ReadLocal, askReplyTo),
+                Replicator.Get(key, Replicator.ReadLocal),
                 value => InternalGetResponse(value, replyTo)
               )
               Behaviors.same
