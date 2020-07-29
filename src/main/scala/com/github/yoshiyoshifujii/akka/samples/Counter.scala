@@ -24,6 +24,7 @@ object Counter {
       implicit val node: SelfUniqueAddress = DistributedData(context.system).selfUniqueAddress
 
       DistributedData.withReplicatorMessageAdapter[Command, GCounter] { replicatorAdapter =>
+        // based on the configurable `akka.cluster.distributed-data.notify-subscribers-interval`.
         replicatorAdapter.subscribe(key, InternalSubscribeResponse.apply)
 
         def updated(cachedValue: Int): Behavior[Command] =
