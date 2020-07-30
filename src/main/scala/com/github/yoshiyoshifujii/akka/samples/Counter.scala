@@ -5,9 +5,11 @@ import akka.actor.typed.{ ActorRef, Behavior }
 import akka.cluster.ddata.typed.scaladsl.{ DistributedData, Replicator }
 import akka.cluster.ddata.{ GCounter, GCounterKey, SelfUniqueAddress }
 
+import scala.concurrent.duration._
+
 object Counter {
 
-  sealed trait Command
+  sealed trait Command                                                                extends JsonSerializer
   case object Increment                                                               extends Command
   final case class GetValue(replyTo: ActorRef[Int])                                   extends Command
   final case class GetCachedValue(replyTo: ActorRef[Int])                             extends Command
@@ -38,7 +40,7 @@ object Counter {
 
             case GetValue(replyTo) =>
               replicatorAdapter.askGet(
-                Replicator.Get(key, Replicator.ReadLocal),
+                Replicator.Get(key, Replicator.ReadAll(5.seconds)),
                 value => InternalGetResponse(value, replyTo)
               )
               Behaviors.same
